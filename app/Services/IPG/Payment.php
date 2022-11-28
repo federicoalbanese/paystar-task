@@ -22,7 +22,7 @@ class Payment implements PaymentInterface
     }
 
     /**
-     * @return string
+     * @return Invoice
      * @throws PurchaseFailedException
      */
     public function purchase(): string
@@ -52,8 +52,9 @@ class Payment implements PaymentInterface
             throw new PurchaseFailedException($this->translateStatus($status));
         }
         $this->invoice->setTransactionId($body['data']['ref_num']);
+        $this->invoice->setToken($body['data']['token']);
 
-        return $this->invoice->getTransactionId();
+        return $this->invoice;
     }
 
     public function pay()
