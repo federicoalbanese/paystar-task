@@ -1,5 +1,6 @@
 <?php
 
+use App\Constants\InvoiceConstants;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,15 +14,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('card_number')->nullable();
-            $table->rememberToken();
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('number', 6)->unique();
+            $table->enum('status', InvoiceConstants::STATUSES)->default(InvoiceConstants::INIT);
+            $table->unsignedBigInteger('final_price')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('invoices');
     }
 };
