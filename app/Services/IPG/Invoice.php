@@ -14,6 +14,8 @@ class Invoice
 
     protected string $transactionId;
 
+    protected string $token;
+
     public function __construct()
     {
         $this->generateUuid();
@@ -64,7 +66,7 @@ class Invoice
      */
     public function setAmount(int $amount): Invoice
     {
-        if (!is_int($amount)) {
+        if (! is_int($amount)) {
             throw new LogicException(ErrorConstants::UNKNOWN_VALUE);
         }
         $this->amount = $amount;
@@ -88,6 +90,26 @@ class Invoice
     public function setTransactionId(string $transactionId): Invoice
     {
         $this->transactionId = $transactionId;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    /**
+     * @param string $token
+     *
+     * @return Invoice
+     */
+    public function setToken(string $token): Invoice
+    {
+        $this->token = $token;
 
         return $this;
     }
