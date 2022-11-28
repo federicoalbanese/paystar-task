@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -24,23 +26,27 @@ class Invoice extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * @return HasMany
+     */
+    public function invoiceItems(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * @return int
      */
     public function getId(): int
     {
         return $this->id;
-    }
-
-    /**
-     * @param int $id
-     *
-     * @return Invoice
-     */
-    public function setId(int $id): Invoice
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     /**
@@ -131,17 +137,6 @@ class Invoice extends Model
         return $this->created_at;
     }
 
-    /**
-     * @param string $created_at
-     *
-     * @return Invoice
-     */
-    public function setCreatedAt(string $created_at): Invoice
-    {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
 
     /**
      * @return string
@@ -152,35 +147,10 @@ class Invoice extends Model
     }
 
     /**
-     * @param string $updated_at
-     *
-     * @return Invoice
-     */
-    public function setUpdatedAt(string $updated_at): Invoice
-    {
-        $this->updated_at = $updated_at;
-
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getDeletedAt(): string
     {
         return $this->deleted_at;
     }
-
-    /**
-     * @param string $deleted_at
-     *
-     * @return Invoice
-     */
-    public function setDeletedAt(string $deleted_at): Invoice
-    {
-        $this->deleted_at = $deleted_at;
-
-        return $this;
-    }
-
 }
