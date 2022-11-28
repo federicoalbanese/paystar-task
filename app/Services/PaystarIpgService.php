@@ -13,6 +13,8 @@ class PaystarIpgService
 
     protected Payment $payment;
 
+    protected Invoice $invoice;
+
     public function __construct(array $config = [])
     {
         $this->config = empty($config) ? $this->getConfig() : $config;
@@ -29,9 +31,9 @@ class PaystarIpgService
     {
         $this->payment = $this->getPaymentObject($invoice);
 
-        $transactionId = $this->payment->purchase();
+        $this->invoice = $this->payment->purchase();
         if ($initCallback) {
-            call_user_func($initCallback, $transactionId);
+            call_user_func($initCallback, $this->invoice->getTransactionId());
         }
 
         return $this;
