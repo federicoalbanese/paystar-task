@@ -1,0 +1,14 @@
+{
+  "successful": "موفق",
+  "invalid request": "درخواست نامعتبر (خطا در پارامترهای ورودی)",
+  "shop gateway is not active": "درگاه فعال نیست",
+  "the token is duplicated": "توکن تکراری است",
+  "the amount is more than the permissible limit of the gateway": "مبلغ بیشتر از سقف مجاز درگاه است",
+  "identifier ref_num is not valid": "شناسه ref_num معتبر نیست",
+  "the transaction has already been verified": "تراکنش قبلا وریفای شده است",
+  "the parameters passed are invalid": "پارامترهای ارسال شده نامعتبر است",
+  "the transaction could not be verified": "تراکنش را نمیتوان وریفای کرد",
+  "the transaction cannot be verified": "تراکنش وریفای نشد",
+  "transaction failed": "تراکنش ناموفق",
+  "system error": "خطای سامانه"
+}
