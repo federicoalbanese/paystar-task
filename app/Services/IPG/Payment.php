@@ -25,7 +25,7 @@ class Payment implements PaymentInterface
      * @return Invoice
      * @throws PurchaseFailedException
      */
-    public function purchase(): string
+    public function purchase(): Invoice
     {
         $postFields = [
             'amount' => $this->invoice->getAmount(),
@@ -59,6 +59,9 @@ class Payment implements PaymentInterface
 
     public function pay()
     {
+        $paymentUri = $this->settings['PAYMENT_URI'];
+
+        return redirect()->away($paymentUri . '?token=' . $this->invoice->getToken());
     }
 
     public function verify()
