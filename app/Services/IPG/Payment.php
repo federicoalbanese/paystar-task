@@ -2,6 +2,7 @@
 
 namespace App\Services\IPG;
 
+use App\Constants\ErrorConstants;
 use App\Constants\PaymentConstants;
 use App\Interfaces\PaymentInterface;
 use App\Services\IPG\Exceptions\PurchaseFailedException;
@@ -46,8 +47,9 @@ class Payment implements PaymentInterface
 
         $body = json_decode($response->body(), true);
 
-        if ($body['status'] !== 1) {
-            throw new PurchaseFailedException();
+        $status = $body['status'];
+        if ($status !== PaymentConstants::RESPONSE_STATUS_OK) {
+            throw new PurchaseFailedException($this->translateStatus($status));
         }
         $this->invoice->setTransactionId($body['data']['ref_num']);
 
@@ -76,5 +78,17 @@ class Payment implements PaymentInterface
                 $this->settings['CALLBACK_URL']),
             $this->settings['KEY']
         );
+    }
+
+    /**
+     * @param int $status
+     *
+     * @return int|string
+     */
+    private function translateStatus(int $status): int|string
+    {
+        return array_key_exists($status, PaymentConstants::RESPONSE_STATUSES)
+            ? PaymentConstants::RESPONSE_STATUSES[$status]
+            : ErrorConstants::UNKNOWN_ERROR;
     }
 }

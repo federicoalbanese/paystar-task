@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Constants\PaymentConstants;
+use App\Services\IPG\Exceptions\PurchaseFailedException;
 use App\Services\IPG\Invoice;
 use App\Services\IPG\Payment;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Http;
-use JetBrains\PhpStorm\Pure;
+use Shetabit\Multipay\Exceptions\InvoiceNotFoundException;
 
 class PaystarIpgService
 {
@@ -20,11 +18,23 @@ class PaystarIpgService
         $this->config = empty($config) ? $this->getConfig() : $config;
     }
 
-    public function purchase(Invoice $invoice, callable $initCallback = null)
+    /**
+     * @param Invoice       $invoice
+     * @param callable|null $initCallback
+     *
+     * @return PaystarIpgService
+     * @throws PurchaseFailedException
+     */
+    public function purchase(Invoice $invoice, callable $initCallback = null): PaystarIpgService
     {
         $this->payment = $this->getPaymentObject($invoice);
 
-        $this->payment->purchase();
+        $transactionId = $this->payment->purchase();
+        if ($initCallback) {
+            call_user_func($initCallback, $transactionId);
+        }
+
+        return $this;
     }
 
     public function pay()
