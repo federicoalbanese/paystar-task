@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\IPG\Exceptions\InvoiceNotFoundException;
 use App\Services\IPG\Exceptions\PurchaseFailedException;
 use App\Services\IPG\Invoice;
 use App\Services\IPG\Payment;
-use Shetabit\Multipay\Exceptions\InvoiceNotFoundException;
 
 class PaystarIpgService
 {
@@ -41,6 +41,9 @@ class PaystarIpgService
 
     public function pay()
     {
+        $this->validateInvoice();
+
+        return $this->payment->pay();
     }
 
     public function verify()
@@ -64,5 +67,15 @@ class PaystarIpgService
     public function getPaymentObject(Invoice $invoice): Payment
     {
         return new Payment($invoice, $this->config);
+    }
+
+    /**
+     * @throws InvoiceNotFoundException
+     */
+    protected function validateInvoice()
+    {
+        if (empty($this->invoice)) {
+            throw new InvoiceNotFoundException('Invoice not selected or does not exist.');
+        }
     }
 }
