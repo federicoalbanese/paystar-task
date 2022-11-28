@@ -2,8 +2,6 @@
 
 namespace App\Services\IPG\Exceptions;
 
-use App\Exceptions\LogicException;
-
-class PurchaseFailedException extends LogicException
+class PurchaseFailedException extends PaymentException
 {
 }
