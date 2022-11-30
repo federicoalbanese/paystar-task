@@ -2,6 +2,8 @@
 
 namespace App\Services\IPG\Exceptions;
 
-class InvoiceNotFoundException extends PaymentException
+use App\Exceptions\LogicException;
+
+class InvoiceNotFoundException extends LogicException
 {
 }
