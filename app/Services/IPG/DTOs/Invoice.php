@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\IPG;
+namespace App\Services\IPG\DTOs;
 
 use App\Constants\ErrorConstants;
 use App\Exceptions\LogicException;
