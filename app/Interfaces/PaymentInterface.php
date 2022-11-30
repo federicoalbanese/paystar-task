@@ -2,7 +2,7 @@
 
 namespace App\Interfaces;
 
-use App\Services\IPG\Invoice;
+use App\Services\IPG\DTOs\GatewayResponse;
 
 interface PaymentInterface
 {
@@ -10,5 +10,5 @@ interface PaymentInterface
 
     public function pay();
 
-    public function verify();
+    public function verify(GatewayResponse $gatewayResponse);
 }
