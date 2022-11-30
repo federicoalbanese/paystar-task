@@ -19,22 +19,21 @@ class PaystarIpgService
 
     protected Invoice $invoice;
 
-    public function __construct(array $config = [])
+    public function __construct(Invoice $invoice, array $config = [])
     {
         $this->config = empty($config) ? $this->getConfig() : $config;
+        $this->invoice = $invoice;
+        $this->payment = $this->getPaymentObject($invoice);
     }
 
     /**
-     * @param Invoice       $invoice
      * @param callable|null $initCallback
      *
      * @return PaystarIpgService
      * @throws PurchaseFailedException
      */
-    public function purchase(Invoice $invoice, callable $initCallback = null): PaystarIpgService
+    public function purchase(callable $initCallback = null): PaystarIpgService
     {
-        $this->payment = $this->getPaymentObject($invoice);
-
         $this->invoice = $this->payment->purchase();
         if ($initCallback) {
             call_user_func($initCallback, $this->invoice->getTransactionId());
@@ -43,7 +42,11 @@ class PaystarIpgService
         return $this;
     }
 
-    public function pay()
+    /**
+     * @return RedirectResponse
+     * @throws InvoiceNotFoundException
+     */
+    public function pay(): RedirectResponse
     {
         $this->validateInvoice();
 
@@ -89,7 +92,7 @@ class PaystarIpgService
     protected function validateInvoice()
     {
         if (empty($this->invoice)) {
-            throw new InvoiceNotFoundException('Invoice not selected or does not exist.');
+            throw new InvoiceNotFoundException(ErrorConstants::INVOICE_NOTFOUND);
         }
     }
 }
