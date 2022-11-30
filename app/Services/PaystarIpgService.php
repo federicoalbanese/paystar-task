@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Constants\ErrorConstants;
+use App\Services\IPG\DTOs\GatewayResponse;
+use App\Services\IPG\DTOs\Receipt;
 use App\Services\IPG\Exceptions\InvoiceNotFoundException;
 use App\Services\IPG\Exceptions\PurchaseFailedException;
-use App\Services\IPG\Invoice;
+use App\Services\IPG\DTOs\Invoice;
 use App\Services\IPG\Payment;
+use Illuminate\Http\RedirectResponse;
 
 class PaystarIpgService
 {
@@ -46,8 +50,18 @@ class PaystarIpgService
         return $this->payment->pay();
     }
 
-    public function verify()
+    /**
+     * @param GatewayResponse $gatewayResponse
+     *
+     * @return Receipt
+     * @throws InvoiceNotFoundException
+     * @throws PurchaseFailedException
+     */
+    public function verify(GatewayResponse $gatewayResponse): Receipt
     {
+        $this->validateInvoice();
+
+        return $this->payment->verify($gatewayResponse);
     }
 
     /**
