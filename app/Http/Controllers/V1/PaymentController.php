@@ -9,12 +9,20 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\IPG\DTOs\GatewayResponse;
 use App\Services\IPG\DTOs\Invoice as InvoiceDto;
+use App\Services\PaymentService;
 use App\Services\PaystarIpgService;
+use Illuminate\Contracts\Foundation\Application;
+use \Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
+use \Illuminate\Contracts\View\View;
 
 class PaymentController extends Controller
 {
-    public function __construct(private PaystarIpgService $ipgService) { }
+    /**
+     * @param \App\Services\PaystarIpgService $ipgService
+     * @param \App\Services\PaymentService    $paymentService
+     */
+    public function __construct(private PaystarIpgService $ipgService, private PaymentService $paymentService) { }
 
     /**
      * @throws \App\Services\IPG\Exceptions\InvoiceNotFoundException
@@ -23,8 +31,7 @@ class PaymentController extends Controller
      */
     public function pay(Invoice $invoice)
     {
-        $invoiceDto = new InvoiceDto();
-        $invoiceDto->setAmount($invoice->getFinalPrice());
+        $invoiceDto = $this->getInvoiceDto($invoice->getFinalPrice());
 
         return $this->ipgService
             ->invoice($invoiceDto)
@@ -38,18 +45,53 @@ class PaymentController extends Controller
             ->pay();
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Application|Factory|View
+     * @throws LogicException
+     */
     public function callback(Request $request)
     {
-        dd($request->user());
         $gatewayResponse = new GatewayResponse($request->all());
+        $user = $request->user();
+        $payment = $this->paymentService->findPayment($user->getId(), $gatewayResponse->getRefNum());
 
         try {
-            if (! $gatewayResponse->hasSameCard('6037998130284622')) {
+            if (! $payment) {
+                throw new LogicException(ErrorConstants::PAYMENT_NOT_FOUND);
+            }
+            if (! $gatewayResponse->hasSameCard($user->getCardNumber())) {
                 throw new LogicException(ErrorConstants::CARD_NUMBER_NOT_MATCH);
             }
 
+            $invoice = $this->getInvoiceDto($payment->getAmount());
+            $receipt = $this->ipgService
+                ->invoice($invoice)
+                ->verify($gatewayResponse);
+
+            $payment = $this->paymentService
+                ->makeSuccessPayment($payment, $receipt, $gatewayResponse->getTransactionId());
+
+            return view('payments.successful-payment', compact('payment'));
         } catch (\Exception $exception) {
+            $this->paymentService->makeFailPayment($payment, $exception->getMessage());
+
+            return view('payments.fail-payment', compact('payment'));
         }
-        dd();
+    }
+
+    /**
+     * @param integer $amount
+     *
+     * @return InvoiceDto
+     * @throws LogicException
+     */
+    private function getInvoiceDto(int $amount): InvoiceDto
+    {
+        $invoiceDto = new InvoiceDto();
+        $invoiceDto->setAmount($amount);
+
+        return $invoiceDto;
     }
 }
