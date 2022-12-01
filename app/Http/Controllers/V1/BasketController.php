@@ -22,8 +22,9 @@ class BasketController extends Controller
     {
         $invoice = $this->createInvoice();
         $invoiceItem = $this->createInvoiceItem($invoice->getId());
+        $user = auth()->user();
 
-        return view('basket.checkout', compact('invoiceItem', 'invoice'));
+        return view('basket.checkout', compact('invoiceItem', 'invoice', 'user'));
     }
 
     /**
