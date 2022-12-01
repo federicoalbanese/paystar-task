@@ -12,7 +12,7 @@ class Invoice
 
     protected int $amount = 0;
 
-    protected string $transactionId;
+    protected string $referenceId;
 
     protected string $token;
 
@@ -77,19 +77,19 @@ class Invoice
     /**
      * @return string
      */
-    public function getTransactionId(): string
+    public function getReferenceId(): string
     {
-        return $this->transactionId;
+        return $this->referenceId;
     }
 
     /**
-     * @param string $transactionId
+     * @param string $referenceId
      *
      * @return Invoice
      */
-    public function setTransactionId(string $transactionId): Invoice
+    public function setReferenceId(string $referenceId): Invoice
     {
-        $this->transactionId = $transactionId;
+        $this->referenceId = $referenceId;
 
         return $this;
     }
