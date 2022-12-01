@@ -82,7 +82,8 @@ class Payment implements PaymentInterface
 
         $this->checkResponse($body['status']);
 
-        return $this->generateReceipt($body);
+        return $this->generateReceipt($body)
+            ->setMessage($body['message']);
     }
 
     /**
