@@ -3,11 +3,11 @@
 namespace App\Services\IPG\Validator\Handlers;
 
 use App\Constants\ErrorConstants;
+use App\Interfaces\HandlerInterface;
 use App\Services\IPG\DTOs\HandlerDto;
 
-class PaymentNotFoundHandler implements \App\Interfaces\HandlerInterface
+class CardNumberNotMatchHandler implements HandlerInterface
 {
-
     /**
      * @param HandlerDto $handlerDto
      *
@@ -15,11 +15,11 @@ class PaymentNotFoundHandler implements \App\Interfaces\HandlerInterface
      */
     public function handle(HandlerDto $handlerDto): bool
     {
-        return ! is_null($handlerDto->getPayment());
+        return $handlerDto->getGatewayResponse()->hasSameCard($handlerDto->getUser()->getCardNumber());
     }
 
     public function getCode(): int
     {
-        return ErrorConstants::PAYMENT_NOT_FOUND;
+        return ErrorConstants::CARD_NUMBER_NOT_MATCH;
     }
 }
