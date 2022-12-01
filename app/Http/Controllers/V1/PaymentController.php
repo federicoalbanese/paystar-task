@@ -31,6 +31,11 @@ class PaymentController extends Controller
      */
     public function pay(Invoice $invoice)
     {
+        if (! auth()->user()->getCardNumber()) {
+            session()->flash('card-number', false);
+
+            return redirect()->route('basket.checkout');
+        }
         $invoiceDto = $this->getInvoiceDto($invoice->getFinalPrice());
 
         return $this->ipgService
