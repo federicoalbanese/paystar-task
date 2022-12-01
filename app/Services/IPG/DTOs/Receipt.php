@@ -15,6 +15,8 @@ class Receipt extends AbstractBaseDTO
 
     private Carbon $date;
 
+    private string $message = '';
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -92,5 +94,25 @@ class Receipt extends AbstractBaseDTO
     private function setDate()
     {
         $this->date = Carbon::now();
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
+
+    /**
+     * @param string $message
+     *
+     * @return Receipt
+     */
+    public function setMessage(string $message): Receipt
+    {
+        $this->message = $message;
+
+        return $this;
     }
 }
