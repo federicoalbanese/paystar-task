@@ -14,10 +14,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payments', function(Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained('invoices');
-            $table->string('transaction_id');
+            $table->string('transaction_id')->nullable();
             $table->string('reference_id')->nullable();
             $table->enum('status', PaymentConstants::STATUSES)->default(PaymentConstants::INIT);
             $table->unsignedBigInteger('amount');
