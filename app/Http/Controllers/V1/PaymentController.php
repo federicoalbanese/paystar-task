@@ -7,8 +7,12 @@ use App\Exceptions\LogicException;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\IPG\DTOs\GatewayResponse;
+use App\Services\IPG\DTOs\HandlerDto;
 use App\Services\IPG\DTOs\Invoice as InvoiceDto;
+use App\Services\IPG\Exceptions\PaymentException;
+use App\Services\IPG\Validator\PaymentValidator;
 use App\Services\PaymentService;
 use App\Services\PaystarIpgService;
 use Illuminate\Contracts\Foundation\Application;
@@ -61,14 +65,10 @@ class PaymentController extends Controller
         $gatewayResponse = new GatewayResponse($request->all());
         $user = $request->user();
         $payment = $this->paymentService->findPayment($user->getId(), $gatewayResponse->getRefNum());
+        $handlerDto = $this->generateHandlerDto($gatewayResponse, $user, $payment);
 
         try {
-            if (! $payment) {
-                throw new LogicException(ErrorConstants::PAYMENT_NOT_FOUND);
-            }
-            if (! $gatewayResponse->hasSameCard($user->getCardNumber())) {
-                throw new LogicException(ErrorConstants::CARD_NUMBER_NOT_MATCH);
-            }
+            $this->validateCallback($handlerDto);
 
             $invoice = $this->getInvoiceDto($payment->getAmount());
             $receipt = $this->ipgService
@@ -90,7 +90,6 @@ class PaymentController extends Controller
      * @param integer $amount
      *
      * @return InvoiceDto
-     * @throws LogicException
      */
     private function getInvoiceDto(int $amount): InvoiceDto
     {
@@ -98,5 +97,31 @@ class PaymentController extends Controller
         $invoiceDto->setAmount($amount);
 
         return $invoiceDto;
+    }
+
+    private function generateHandlerDto(GatewayResponse $gatewayResponse, User $user, ?Payment $payment)
+    {
+        return (new HandlerDto())
+            ->setGatewayResponse($gatewayResponse)
+            ->setUser($user)
+            ->setPayment($payment);
+    }
+
+    /**
+     * @param HandlerDto $handlerDto
+     *
+     * @return void
+     * @throws LogicException
+     * @throws PaymentException
+     */
+    private function validateCallback(HandlerDto $handlerDto)
+    {
+        if ($handlerDto->getGatewayResponse()->getStatus() != 1) {
+            throw new PaymentException($handlerDto->getGatewayResponse()->getStatus());
+        }
+
+        if (($status = PaymentValidator::build($handlerDto))) {
+            throw new LogicException($status);
+        }
     }
 }
