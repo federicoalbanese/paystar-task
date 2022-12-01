@@ -76,6 +76,7 @@ class PaystarIpgService
     public function verify(GatewayResponse $gatewayResponse): Receipt
     {
         $this->validateInvoice();
+        $this->setPaymentObject();
 
         return $this->payment->verify($gatewayResponse);
     }
