@@ -46,7 +46,7 @@ class Payment implements PaymentInterface
         $body = json_decode($response->body(), true);
 
         $this->checkResponse($body['status']);
-        $this->invoice->setTransactionId($body['data']['ref_num']);
+        $this->invoice->setReferenceId($body['data']['ref_num']);
         $this->invoice->setToken($body['data']['token']);
 
         return $this->invoice;
@@ -82,7 +82,8 @@ class Payment implements PaymentInterface
 
         $this->checkResponse($body['status']);
 
-        return $this->generateReceipt($body);
+        return $this->generateReceipt($body)
+            ->setMessage($body['message']);
     }
 
     /**

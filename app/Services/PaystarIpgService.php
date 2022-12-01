@@ -19,11 +19,21 @@ class PaystarIpgService
 
     protected Invoice $invoice;
 
-    public function __construct(Invoice $invoice, array $config = [])
+    public function __construct(array $config = [])
     {
         $this->config = empty($config) ? $this->getConfig() : $config;
+    }
+
+    /**
+     * @param Invoice $invoice
+     *
+     * @return $this
+     */
+    public function invoice(Invoice $invoice): static
+    {
         $this->invoice = $invoice;
-        $this->payment = $this->getPaymentObject($invoice);
+
+        return $this;
     }
 
     /**
@@ -31,12 +41,15 @@ class PaystarIpgService
      *
      * @return PaystarIpgService
      * @throws PurchaseFailedException
+     * @throws InvoiceNotFoundException
      */
     public function purchase(callable $initCallback = null): PaystarIpgService
     {
+        $this->validateInvoice();
+        $this->setPaymentObject();
         $this->invoice = $this->payment->purchase();
         if ($initCallback) {
-            call_user_func($initCallback, $this->invoice->getTransactionId());
+            call_user_func($initCallback, $this->invoice->getReferenceId());
         }
 
         return $this;
@@ -63,6 +76,7 @@ class PaystarIpgService
     public function verify(GatewayResponse $gatewayResponse): Receipt
     {
         $this->validateInvoice();
+        $this->setPaymentObject();
 
         return $this->payment->verify($gatewayResponse);
     }
@@ -77,13 +91,11 @@ class PaystarIpgService
     }
 
     /**
-     * @param Invoice $invoice
-     *
-     * @return Payment
+     * @return void
      */
-    public function getPaymentObject(Invoice $invoice): Payment
+    protected function setPaymentObject(): void
     {
-        return new Payment($invoice, $this->config);
+        $this->payment = new Payment($this->invoice, $this->config);
     }
 
     /**

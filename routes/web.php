@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\V1\BasketController;
+use App\Http\Controllers\V1\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +16,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['as' => 'basket.'], function (){
-    Route::get('/', [BasketController::class, 'checkout'])->name('checkout');
+Route::get('/', function() {
+    return view('welcome');
 });
+
+Route::get('/dashboard', function() {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function() {
+    Route::post('/payments/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+    Route::get('/checkout', [BasketController::class, 'checkout'])->name('basket.checkout');
+    Route::get('/pay/{invoice}', [PaymentController::class, 'pay'])->name('basket.pay');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__ . '/auth.php';
