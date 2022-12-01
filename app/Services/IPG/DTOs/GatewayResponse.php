@@ -3,6 +3,7 @@
 namespace App\Services\IPG\DTOs;
 
 use App\Services\IPG\Abstracts\AbstractBaseDTO;
+use Illuminate\Support\Str;
 
 class GatewayResponse extends AbstractBaseDTO
 {
@@ -136,5 +137,25 @@ class GatewayResponse extends AbstractBaseDTO
         $this->trackingCode = $trackingCode;
 
         return $this;
+    }
+
+    /**
+     * @param string $userCardNumber
+     *
+     * @return bool
+     */
+    public function hasSameCard(string $userCardNumber): bool
+    {
+        return $this->getCardNumber() == $this->maskCardNumber($userCardNumber);
+    }
+
+    /**
+     * @param string $userCardNumber
+     *
+     * @return string
+     */
+    private function maskCardNumber(string $userCardNumber): string
+    {
+        return Str::mask($userCardNumber, '*', 6, 6);
     }
 }
