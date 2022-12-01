@@ -2,14 +2,20 @@
 
 namespace App\Services\IPG;
 
-use App\Constants\ErrorConstants;
 use App\Constants\PaymentConstants;
 use App\Interfaces\PaymentInterface;
+use App\Services\IPG\DTOs\GatewayResponse;
+use App\Services\IPG\DTOs\Invoice;
+use App\Services\IPG\DTOs\Receipt;
 use App\Services\IPG\Exceptions\PurchaseFailedException;
+use App\Services\IPG\Traits\HasDetails;
+use App\Services\IPG\Traits\HasSing;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
 
 class Payment implements PaymentInterface
 {
+    use HasSing, HasDetails;
 
     private Invoice $invoice;
 
@@ -31,68 +37,73 @@ class Payment implements PaymentInterface
             'amount' => $this->invoice->getAmount(),
             'order_id' => $this->invoice->getUuid(),
             'callback' => $this->settings['CALLBACK_URL'],
-            'sign' => $this->getSing(),
+            'sign' => $this->getPurchaseSing(),
             'callback_method' => PaymentConstants::HTTP_TYPES[$this->settings['CALLBACK_METHOD']],
         ];
-
-        $terminalId = $this->settings['TERMINAL_ID'];
-
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => "Bearer $terminalId",
-        ];
-
-        $response = Http::withHeaders($headers)
+        $response = Http::withHeaders($this->getHeaders())
             ->post('https://core.paystar.ir/api/pardakht/create', $postFields);
 
         $body = json_decode($response->body(), true);
 
-        $status = $body['status'];
-        if ($status !== PaymentConstants::RESPONSE_STATUS_OK) {
-            throw new PurchaseFailedException($this->translateStatus($status));
-        }
+        $this->checkResponse($body['status']);
         $this->invoice->setTransactionId($body['data']['ref_num']);
         $this->invoice->setToken($body['data']['token']);
 
         return $this->invoice;
     }
 
-    public function pay()
-    {
-        $paymentUri = $this->settings['PAYMENT_URI'];
-
-        return redirect()->away($paymentUri . '?token=' . $this->invoice->getToken());
-    }
-
-    public function verify()
-    {
-    }
-
     /**
-     * @return string
+     * @return RedirectResponse
      */
-    private function getSing(): string
+    public function pay(): RedirectResponse
     {
-        return hash_hmac('SHA512',
-            sprintf
-            (
-                '%s#%s#%s',
-                $this->invoice->getAmount(),
-                $this->invoice->getUuid(),
-                $this->settings['CALLBACK_URL']),
-            $this->settings['KEY']
-        );
+        return redirect()->away($this->getRedirectUrl());
     }
 
     /**
-     * @param int $status
+     * @param GatewayResponse $gatewayResponse
      *
-     * @return int|string
+     * @return Receipt
+     * @throws PurchaseFailedException
      */
-    private function translateStatus(int $status): int|string
+    public function verify(GatewayResponse $gatewayResponse): Receipt
     {
-        return array_key_exists($status, PaymentConstants::RESPONSE_STATUSES)
-            ? PaymentConstants::RESPONSE_STATUSES[$status]
-            : ErrorConstants::UNKNOWN_ERROR;
+        $this->gatewayResponse = $gatewayResponse;
+
+        $postFields = [
+            'ref_num' => $gatewayResponse->getRefNum(),
+            'amount' => $this->invoice->getAmount(),
+            'sign' => $this->getVerifySing(),
+        ];
+
+        $response = Http::withHeaders($this->getHeaders())
+            ->post('https://core.paystar.ir/api/pardakht/verify', $postFields);
+        $body = json_decode($response->body(), true);
+
+        $this->checkResponse($body['status']);
+
+        return $this->generateReceipt($body);
+    }
+
+    /**
+     * @param integer $status
+     *
+     * @throws PurchaseFailedException
+     */
+    public function checkResponse(int $status): void
+    {
+        if ($status !== PaymentConstants::RESPONSE_STATUS_OK) {
+            throw new PurchaseFailedException($status);
+        }
+    }
+
+    /**
+     * @param array $verifyResponse
+     *
+     * @return Receipt
+     */
+    private function generateReceipt(array $verifyResponse): Receipt
+    {
+        return new Receipt($verifyResponse['data']);
     }
 }
