@@ -4,6 +4,7 @@ namespace App\Services\IPG\Validator;
 
 use App\Abstracts\AbstractBaseHandler;
 use App\Interfaces\HandlerInterface;
+use App\Services\IPG\DTOs\HandlerDto;
 use App\Services\IPG\Validator\Handlers\PaymentNotFoundHandler;
 
 class PaymentValidator extends AbstractBaseHandler
@@ -12,11 +13,11 @@ class PaymentValidator extends AbstractBaseHandler
     /**
      * @return integer|null
      */
-    public function build(): ?int
+    public static function build(HandlerDto $handlerDto): ?int
     {
         /** @var HandlerInterface $item */
         foreach (static::getHandlers() as $item) {
-            if (! $item->handle()) {
+            if (! $item->handle($handlerDto)) {
                 return $item->getCode();
             }
         }
