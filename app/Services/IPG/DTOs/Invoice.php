@@ -62,13 +62,9 @@ class Invoice
      * @param int $amount
      *
      * @return $this
-     * @throws \App\Exceptions\LogicException
      */
     public function setAmount(int $amount): Invoice
     {
-        if (! is_int($amount)) {
-            throw new LogicException(ErrorConstants::UNKNOWN_VALUE);
-        }
         $this->amount = $amount;
 
         return $this;
