@@ -2,9 +2,19 @@
 
 namespace App\Interfaces;
 
+use App\Services\IPG\DTOs\HandlerDto;
+
 interface HandlerInterface
 {
-    public function handle();
+    /**
+     * @param HandlerDto $handlerDto
+     *
+     * @return bool
+     */
+    public function handle(HandlerDto $handlerDto): bool;
 
+    /**
+     * @return int
+     */
     public function getCode(): int;
 }
