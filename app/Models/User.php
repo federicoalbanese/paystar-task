@@ -11,10 +11,9 @@ use Laravel\Sanctum\HasApiTokens;
  * Class User
  *
  * @package App\Models
- *
- * @property int id
- * @property string email
- * @property string password
+ * @property int         id
+ * @property string      email
+ * @property string      password
  * @property string|null card_number
  */
 class User extends Authenticatable
@@ -29,6 +28,12 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $fillable = [
+        'email',
+        'card_number',
+        'name',
     ];
 
     /**
@@ -58,6 +63,7 @@ class User extends Authenticatable
 
     /**
      * @param string $email
+     *
      * @return User
      */
     public function setEmail(string $email): User
@@ -77,6 +83,7 @@ class User extends Authenticatable
 
     /**
      * @param string $password
+     *
      * @return User
      */
     public function setPassword(string $password): User
@@ -96,6 +103,7 @@ class User extends Authenticatable
 
     /**
      * @param string|null $card_number
+     *
      * @return User
      */
     public function setCardNumber(?string $card_number): User
